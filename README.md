@@ -1,56 +1,77 @@
-# Welcome to your Expo app 👋
+# NeuroInbox 🚀
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> **Note:** 🚧 This application is currently **in development**. Features, UI, and functionality are subject to change.
 
-## Get started
+NeuroInbox is a React Native mobile application built with Expo that organizes and categorizes your SMS messages into an intuitive, modern inbox. The app features a Material Design UI using `react-native-paper` and dynamically switches themes based on your device's system settings.
 
-1. Install dependencies
+## Features ✨
+- **Native SMS Fetching:** Automatically reads incoming and existing SMS messages directly from your Android device using `react-native-get-sms-android`.
+- **Smart Categorization:** Filters your SMS into useful categories like Personal, Transactions, OTPs, and Offers.
+- **Material Design:** A beautiful, responsive user interface built using `react-native-paper`.
+- **Dynamic Theming:** Seamlessly adapts to your device's light or dark mode preferences.
+- **Feature-Based Architecture:** Scalable and maintainable project structure.
 
-   ```bash
-   npm install
-   ```
+## Tech Stack 🛠
+- [Expo](https://expo.dev) / React Native
+- [React Native Paper](https://reactnativepaper.com/) (Material Design)
+- [React Native Get SMS Android](https://github.com/briankabiro/react-native-get-sms-android) (Native Android SMS capabilities)
 
-2. Start the app
+## Requirements ⚠️
+Because this application relies on native Android permissions (`READ_SMS`) and a native Android package (`react-native-get-sms-android`), **it cannot be run using the standard Expo Go app.**
 
-   ```bash
-   npx expo start
-   ```
+You must build the project as a custom development client (or use Expo Prebuild). **This app only works on Android devices or emulators.**
 
-In the output, you'll find options to open the app in a
+## Getting Started 🏁
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### 1. Install dependencies
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Run the App on Android (Development Client)
+Connect your physical Android device via USB debugging or start an Android Emulator, then run:
 
-### Other setup steps
+```bash
+npx expo run:android
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+This command will:
+1. Generate the native `android` folder (if missing).
+2. Compile the custom native code and inject the required permissions.
+3. Install the development client on your device/emulator.
+4. Start the Metro bundler.
 
-## Learn more
+### 3. Grant Permissions
+Upon launching the application for the first time, you will be prompted to grant SMS read permissions. Allow this permission to view your messages in the NeuroInbox dashboard.
 
-To learn more about developing your project with Expo, look at the following resources:
+### Troubleshooting Build Issues 🐛
+If you encounter build errors related to `react-native-get-sms-android` preventing the Android app from compiling, it may be because the package relies on the deprecated `jcenter()` repository.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+To fix this:
+1. Open the file `node_modules/react-native-get-sms-android/android/build.gradle`.
+2. Locate `jcenter()` (usually under the `repositories` block).
+3. Replace `jcenter()` with `mavenCentral()`.
+4. Run the build command again.
 
-## Join the community
+## Project Structure 📁
+This project follows a feature-based folder structure:
 
-Join our community of developers creating universal apps.
+```
+src/
+ ├── app/               # Expo Router entry points (_layout.tsx, index.tsx)
+ └── features/          
+      └── sms/          # Encapsulated SMS feature module
+           ├── components/
+           │    ├── CategoryChips.tsx
+           │    └── SmsItem.tsx
+           ├── hooks/
+           │    └── useSms.ts
+           ├── SmsScreen.tsx
+           └── types.ts
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Contributing 🤝
+Contributions are welcome! Please feel free to submit a Pull Request or open an Issue.
+
+## License 📄
+This project is licensed under the MIT License - see the LICENSE file for details.
