@@ -7,7 +7,7 @@ interface SmsItemProps {
   item: SmsMessage;
 }
 
-export const SmsItem: React.FC<SmsItemProps> = ({ item }) => {
+export const SmsItem: React.FC<SmsItemProps> = React.memo(({ item }) => {
   const theme = useTheme();
   
   const isUnread = item.read === 0;
@@ -47,7 +47,7 @@ export const SmsItem: React.FC<SmsItemProps> = ({ item }) => {
       onPress={() => { }}
     />
   );
-};
+});
 
 const styles = StyleSheet.create({
   rightContainer: {

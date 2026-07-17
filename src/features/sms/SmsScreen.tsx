@@ -1,62 +1,63 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import { Appbar, Divider, FAB, Text, useTheme } from 'react-native-paper';
 import { CategoryChips } from './components/CategoryChips';
 import { SmsItem } from './components/SmsItem';
+import { SmsSkeleton } from './components/SmsSkeleton';
 import { useSms } from './hooks/useSms';
 import { Category, SmsMessage } from './types';
 
 const CATEGORIES: Category[] = ["All", "Personal", "Transactions", "OTPs", "Offers"];
 
+const renderItem = ({ item }: { item: SmsMessage }) => (
+  <SmsItem item={item} />
+);
+
+const renderSeparator = () => <Divider />;
+
 export const SmsScreen: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<Category>("All");
+  const [selectedCategory, setSelectedCategory] = useState<Category>("Personal");
+  const [isSwitching, setIsSwitching] = useState(false);
+  const [groupByThread, setGroupByThread] = useState(false);
   const theme = useTheme();
+  const { categorizedMessages, loading, loadingMore, loadMore, error, refetch } = useSms();
 
-  const { messages, loading, error, refetch } = useSms();
+  const filteredSMS = categorizedMessages[selectedCategory] || [];
 
-  // Very basic local filtering mockup. Real category filtering would require NLP or regex logic based on senders.
-  const filteredSMS =
-    selectedCategory === "All"
-      ? messages
-      : messages.filter((sms) => {
-        const address = sms.address.toLowerCase();
-        const body = sms.body.toLowerCase();
-        const text = `${address} ${body}`;
+  const processedSMS = useMemo(() => {
+    if (!groupByThread) return filteredSMS;
 
-        const isPhone = /^\+?91\d{10}$/.test(sms.address);
-        const isTelecom = /\b(?:jio|idea|vi|vodafone|voda|bsnl|airtel)\b/i.test(address);
+    const seenThreads = new Set<number>();
+    return filteredSMS.filter((sms) => {
+      if (sms.thread_id === undefined || sms.thread_id === null) {
+        return true;
+      }
+      if (seenThreads.has(sms.thread_id)) {
+        return false;
+      }
+      seenThreads.add(sms.thread_id);
+      return true;
+    });
+  }, [filteredSMS, groupByThread]);
 
-        switch (selectedCategory) {
-          case "OTPs":
-            return /\b(otp|code|verification|password)\b/i.test(body);
-
-          case "Offers":
-            return (
-              sms.address.endsWith("P") ||
-              (sms.address.endsWith("S") && isTelecom)
-            );
-
-          case "Transactions":
-            return /\b(debited|credited|upi|dr\.?|cr\.?|withdrawn|spent|received)\b/i.test(body);
-
-          case "Personal":
-            return isPhone;
-
-          default:
-            return true;
-        }
-      });
-
-  const renderItem = ({ item }: { item: SmsMessage }) => (
-    <SmsItem item={item} />
-  );
+  const switchCategory = (category: Category) => {
+    setIsSwitching(true);
+    const timer = setTimeout(() => {
+      setIsSwitching(false);
+    }, 150);
+    setSelectedCategory(category);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Appbar.Header elevated>
         <Appbar.Action icon="menu" onPress={() => { }} />
         <Appbar.Content title="NeuroInbox" />
-        <Appbar.Action icon="refresh" onPress={refetch} />
+        <Appbar.Action
+          icon={groupByThread ? "forum" : "forum-outline"}
+          onPress={() => setGroupByThread(!groupByThread)}
+          accessibilityLabel="Toggle thread view"
+        />
         <Appbar.Action icon="magnify" onPress={() => { }} />
         <Appbar.Action icon="dots-vertical" onPress={() => { }} />
       </Appbar.Header>
@@ -64,12 +65,14 @@ export const SmsScreen: React.FC = () => {
       <CategoryChips
         categories={CATEGORIES}
         selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
+        onSelectCategory={switchCategory}
       />
 
-      {loading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+      {loading || isSwitching ? (
+        <View style={{ flex: 1 }}>
+          {Array.from({ length: 7 }).map((_, index) => (
+            <SmsSkeleton key={index} />
+          ))}
         </View>
       ) : error ? (
         <View style={styles.centerContainer}>
@@ -79,10 +82,23 @@ export const SmsScreen: React.FC = () => {
         </View>
       ) : (
         <FlatList
-          data={filteredSMS}
+          data={processedSMS}
           keyExtractor={item => item._id}
           renderItem={renderItem}
-          ItemSeparatorComponent={() => <Divider />}
+          ItemSeparatorComponent={renderSeparator}
+          initialNumToRender={15}
+          maxToRenderPerBatch={15}
+          windowSize={7}
+          removeClippedSubviews={true}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={styles.footerContainer}>
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+              </View>
+            ) : null
+          }
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.centerContainer}>
@@ -113,6 +129,11 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 80, // for FAB
+  },
+  footerContainer: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   fab: {
     position: 'absolute',
