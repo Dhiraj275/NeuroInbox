@@ -19,7 +19,8 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "READ_SMS"
+        "READ_SMS",
+        "SEND_SMS"
       ],
       "package": "com.ekisandarshan.neuroinbox"
     },

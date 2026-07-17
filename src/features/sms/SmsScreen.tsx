@@ -7,7 +7,7 @@ import { SmsSkeleton } from './components/SmsSkeleton';
 import { useSms } from './hooks/useSms';
 import { Category, SmsMessage } from './types';
 
-const CATEGORIES: Category[] = ["All", "Personal", "Transactions", "OTPs", "Offers"];
+const CATEGORIES: Category[] = ["All", "Personal", "Transactions", "OTPs", "Promotions"];
 
 const renderItem = ({ item }: { item: SmsMessage }) => (
   <SmsItem item={item} />

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { List, Avatar, Text, useTheme } from 'react-native-paper';
+import { router } from 'expo-router';
 import { SmsMessage } from '../types';
 
 interface SmsItemProps {
@@ -44,7 +45,12 @@ export const SmsItem: React.FC<SmsItemProps> = React.memo(({ item }) => {
           {isUnread && <View style={[styles.unreadDot, { backgroundColor: theme.colors.primary }]} />}
         </View>
       )}
-      onPress={() => { }}
+      onPress={() => {
+        router.push({
+          pathname: '/thread/[threadId]' as any,
+          params: { threadId: item.thread_id, address: item.address }
+        });
+      }}
     />
   );
 });

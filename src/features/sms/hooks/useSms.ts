@@ -9,7 +9,7 @@ export const categorizeSms = (messages: SmsMessage[]): Record<Category, SmsMessa
     Personal: [],
     Transactions: [],
     OTPs: [],
-    Offers: [],
+    Promotions: [],
   };
 
   messages.forEach((sms) => {
@@ -41,7 +41,7 @@ export const categorizeSms = (messages: SmsMessage[]): Record<Category, SmsMessa
       sms.address.endsWith("P") ||
       (sms.address.endsWith("S") && isTelecom)
     ) {
-      result.Offers.push(sms);
+      result.Promotions.push(sms);
     }
   });
 
