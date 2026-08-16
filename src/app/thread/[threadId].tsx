@@ -5,14 +5,19 @@ import SmsAndroid from 'react-native-get-sms-android';
 import { Appbar, IconButton, Text, useTheme } from 'react-native-paper';
 import { useSmsThread } from '../../features/sms/hooks/useSmsThread';
 import { SmsMessage } from '../../features/sms/types';
+import { useContacts } from '../../features/contacts/hooks/useContacts';
 
 export default function ThreadScreen() {
-  const { threadId, address } = useLocalSearchParams();
+  const { threadId, address, contactName: paramContactName } = useLocalSearchParams();
   const theme = useTheme();
+  const { getContactName } = useContacts();
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
 
   const { messages, loading, error, refetch } = useSmsThread(Number(threadId));
+
+  const resolvedContactName = (paramContactName as string) || (address ? getContactName(address as string) : null);
+  const headerTitle = resolvedContactName || (address as string) || "Thread";
 
   // The Catch: Short-codes / alphanumeric addresses are one-way and cannot be replied to.
   const isReplyable = address ? !/[a-zA-Z]/.test(address as string) : false;
@@ -129,7 +134,7 @@ export default function ThreadScreen() {
       <Appbar.Header elevated style={{ backgroundColor: theme.colors.elevation.level2 }}>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content
-          title={address as string || "Thread"}
+          title={headerTitle}
           titleStyle={styles.headerTitle}
         />
       </Appbar.Header>

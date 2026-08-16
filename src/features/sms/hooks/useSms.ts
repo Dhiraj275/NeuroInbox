@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PermissionsAndroid, Platform } from 'react-native';
 import SmsAndroid from 'react-native-get-sms-android';
 import { Category, SmsMessage } from '../types';
+import { formatPhoneNumber } from '../utils/phoneUtils';
 
 export const categorizeSms = (messages: SmsMessage[]): Record<Category, SmsMessage[]> => {
   const result: Record<Category, SmsMessage[]> = {
@@ -18,11 +19,11 @@ export const categorizeSms = (messages: SmsMessage[]): Record<Category, SmsMessa
     const address = sms.address.toLowerCase();
     const body = sms.body.toLowerCase();
 
-    const isPhone = /^\+?91\d{10}$/.test(sms.address);
+    const isPhone = /^\+\d{10,15}$/.test(sms.address) || /^\+?91\d{10}$/.test(sms.address);
     const isTelecom = /\b(?:jio|idea|vi|vodafone|voda|bsnl|airtel)\b/i.test(address);
 
     // Personal
-    if (isPhone) {
+    if (isPhone&&!/\b(otp|code|verification|password|credentials)\b/i.test(body)) {
       result.Personal.push(sms);
     }
 
@@ -102,7 +103,11 @@ export const useSms = () => {
             else setLoadingMore(false);
           },
           (count: number, smsList: string) => {
-            const arr = JSON.parse(smsList) as SmsMessage[];
+            const rawArr = JSON.parse(smsList) as SmsMessage[];
+            const arr = rawArr.map(sms => ({
+              ...sms,
+              address: formatPhoneNumber(sms.address),
+            }));
             if (isInitial) {
               setMessages(arr);
             } else {
@@ -156,4 +161,3 @@ export const useSms = () => {
     refetch,
   };
 };
-

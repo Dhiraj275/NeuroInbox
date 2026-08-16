@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { List, Avatar, Text, useTheme } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SmsMessage } from '../types';
+import { useContacts } from '../../contacts/hooks/useContacts';
 
 interface SmsItemProps {
   item: SmsMessage;
@@ -10,21 +11,27 @@ interface SmsItemProps {
 
 export const SmsItem: React.FC<SmsItemProps> = React.memo(({ item }) => {
   const theme = useTheme();
+  const { getContactName } = useContacts();
   
   const isUnread = item.read === 0;
+  const contactName = getContactName(item.address);
+  const displayTitle = contactName || item.address;
 
-  const getAvatarLabel = (sender: string) => {
-    if (sender.startsWith('+') || sender.match(/^\d/)) {
+  const getAvatarLabel = () => {
+    if (contactName) {
+      return contactName.trim().substring(0, 1).toUpperCase();
+    }
+    if (item.address.startsWith('+') || item.address.match(/^\d/)) {
       return '#';
     }
-    return sender.substring(0, 1).toUpperCase();
+    return item.address.substring(0, 1).toUpperCase();
   };
 
   const formattedDate = new Date(Number(item.date)).toLocaleDateString();
 
   return (
     <List.Item
-      title={item.address}
+      title={displayTitle}
       titleStyle={{ fontWeight: isUnread ? 'bold' : 'normal', color: theme.colors.onSurface }}
       description={item.body}
       style={{ paddingHorizontal: 10 }}
@@ -34,7 +41,7 @@ export const SmsItem: React.FC<SmsItemProps> = React.memo(({ item }) => {
         <Avatar.Text
           {...props}
           size={40}
-          label={getAvatarLabel(item.address)}
+          label={getAvatarLabel()}
           style={{ backgroundColor: theme.colors.primaryContainer }}
           color={theme.colors.onPrimaryContainer}
         />
@@ -48,7 +55,7 @@ export const SmsItem: React.FC<SmsItemProps> = React.memo(({ item }) => {
       onPress={() => {
         router.push({
           pathname: '/thread/[threadId]' as any,
-          params: { threadId: item.thread_id, address: item.address }
+          params: { threadId: item.thread_id, address: item.address, contactName: contactName || '' }
         });
       }}
     />

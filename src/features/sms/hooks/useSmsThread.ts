@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { PermissionsAndroid, Platform } from 'react-native';
 import SmsAndroid from 'react-native-get-sms-android';
 import { SmsMessage } from '../types';
+import { formatPhoneNumber } from '../utils/phoneUtils';
 
 export const useSmsThread = (threadId: number) => {
   const [messages, setMessages] = useState<SmsMessage[]>([]);
@@ -45,7 +46,11 @@ export const useSmsThread = (threadId: number) => {
             setLoading(false);
           },
           (count: number, smsList: string) => {
-            const arr = JSON.parse(smsList) as SmsMessage[];
+            const rawArr = JSON.parse(smsList) as SmsMessage[];
+            const arr = rawArr.map(sms => ({
+              ...sms,
+              address: formatPhoneNumber(sms.address),
+            }));
             // Sort by date descending so we can render inverted (newest at bottom)
             const sorted = arr.sort((a, b) => Number(b.date) - Number(a.date));
             setMessages(sorted);

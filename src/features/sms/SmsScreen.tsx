@@ -6,6 +6,7 @@ import { SmsItem } from './components/SmsItem';
 import { SmsSkeleton } from './components/SmsSkeleton';
 import { useSms } from './hooks/useSms';
 import { Category, SmsMessage } from './types';
+import { ContactsPermissionBanner } from '../contacts/components/ContactsPermissionBanner';
 
 const CATEGORIES: Category[] = ["All", "Personal", "Transactions", "OTPs", "Promotions"];
 
@@ -67,6 +68,8 @@ export const SmsScreen: React.FC = () => {
         selectedCategory={selectedCategory}
         onSelectCategory={switchCategory}
       />
+
+      <ContactsPermissionBanner />
 
       {loading || isSwitching ? (
         <View style={{ flex: 1 }}>

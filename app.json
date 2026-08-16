@@ -20,7 +20,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "READ_SMS",
-        "SEND_SMS"
+        "SEND_SMS",
+        "READ_CONTACTS"
       ],
       "package": "com.ekisandarshan.neuroinbox"
     },
