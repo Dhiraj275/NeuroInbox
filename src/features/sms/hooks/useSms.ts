@@ -3,6 +3,7 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import SmsAndroid from 'react-native-get-sms-android';
 import { Category, SmsMessage } from '../types';
 import { formatPhoneNumber } from '../utils/phoneUtils';
+import { isDefaultSmsApp, requestDefaultSmsApp } from '../services/defaultSmsService';
 
 export const categorizeSms = (messages: SmsMessage[]): Record<Category, SmsMessage[]> => {
   const result: Record<Category, SmsMessage[]> = {
@@ -10,37 +11,64 @@ export const categorizeSms = (messages: SmsMessage[]): Record<Category, SmsMessa
     Personal: [],
     Transactions: [],
     OTPs: [],
+    Government: [],
+    Services: [],
     Promotions: [],
   };
 
   messages.forEach((sms) => {
     result.All.push(sms);
 
-    const address = sms.address.toLowerCase();
-    const body = sms.body.toLowerCase();
+    const rawAddress = sms.address.trim();
+    const addressUpper = rawAddress.toUpperCase();
+    const addressLower = rawAddress.toLowerCase();
+    const bodyLower = sms.body.toLowerCase();
 
-    const isPhone = /^\+\d{10,15}$/.test(sms.address) || /^\+?91\d{10}$/.test(sms.address);
-    const isTelecom = /\b(?:jio|idea|vi|vodafone|voda|bsnl|airtel)\b/i.test(address);
+    const isPhone = /^\+\d{10,15}$/.test(addressLower) || /^\+?91\d{10}$/.test(addressLower);
 
-    // Personal
-    if (isPhone&&!/\b(otp|code|verification|password|credentials)\b/i.test(body)) {
+    // TRAI DLT Header identification rules:
+    // -G suffix / Government headers (e.g., AD-GOVMSG, AX-UIDAIG, XX-XXXX-G)
+    const isGovernment =
+      addressUpper.endsWith("-G") ||
+      (addressUpper.length >= 6 && addressUpper.endsWith("G") && !isPhone) ||
+      /\b(gov|govt|uidai|epfo|aadhaar|passport|incometax|parivahan|vahan|digilocker|mygov|pib|election)\b/i.test(addressLower) ||
+      /\b(uidai|epfo|aadhaar|digilocker|mygov|income tax department|parivahan|government of india|govt of)\b/i.test(bodyLower);
+
+    // -S suffix / Service headers (e.g., VM-INDGAS, AX-JIO-S, XX-XXXX-S)
+    const isService =
+      addressUpper.endsWith("-S") ||
+      (addressUpper.length >= 6 && addressUpper.endsWith("S") && !isPhone) ||
+      /\b(?:jio|idea|vi|vodafone|voda|bsnl|airtel|tatasky|dth|broadband|electricity|utility)\b/i.test(addressLower) ||
+      /\b(recharge|bill due|plan expire|data limit|service request|complaint|ticket)\b/i.test(bodyLower);
+
+    if (isGovernment) {
+      result.Government.push(sms);
+    }
+
+    if (isService && !isGovernment) {
+      result.Services.push(sms);
+    }
+
+    // Personal (Direct mobile number, not government/service/OTP)
+    if (isPhone && !/\b(otp|code|verification|password|credentials)\b/i.test(bodyLower) && !isGovernment) {
       result.Personal.push(sms);
     }
 
     // Transactions
-    if (/\b(debited|credited|upi|dr\.?|cr\.?|withdrawn|spent|received)\b/i.test(body)) {
+    if (/\b(debited|credited|upi|dr\.?|cr\.?|withdrawn|spent|received|transferred|acct|a\/c)\b/i.test(bodyLower)) {
       result.Transactions.push(sms);
     }
 
     // OTPs
-    if (/\b(otp|code|verification|password)\b/i.test(body)) {
+    if (/\b(otp|code|verification|password|login pin)\b/i.test(bodyLower)) {
       result.OTPs.push(sms);
     }
 
-    // Offers
+    // Promotions (TRAI -P suffix or offer headers)
     if (
-      sms.address.endsWith("P") ||
-      (sms.address.endsWith("S") && isTelecom)
+      addressUpper.endsWith("-P") ||
+      (addressUpper.length >= 6 && addressUpper.endsWith("P") && !isPhone) ||
+      /\b(offer|discount|sale|flat|win|cashback|buy 1 get 1|promo)\b/i.test(bodyLower)
     ) {
       result.Promotions.push(sms);
     }
@@ -146,6 +174,44 @@ export const useSms = () => {
     fetchSmsBatch(messages.length, false);
   }, [fetchSmsBatch, loading, loadingMore, hasMore, messages.length]);
 
+  const deleteMessages = useCallback(async (ids: string[]): Promise<{ successCount: number; failCount: number; isNotDefaultApp?: boolean }> => {
+    const isDefault = await isDefaultSmsApp();
+    if (!isDefault) {
+      await requestDefaultSmsApp();
+      const doubleCheck = await isDefaultSmsApp();
+      if (!doubleCheck) {
+        return { successCount: 0, failCount: ids.length, isNotDefaultApp: true };
+      }
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const id of ids) {
+      await new Promise<void>((resolve) => {
+        SmsAndroid.delete(
+          Number(id),
+          (fail: string) => {
+            console.error(`Failed to delete SMS ${id}:`, fail);
+            failCount++;
+            resolve();
+          },
+          (res: string) => {
+            successCount++;
+            resolve();
+          }
+        );
+      });
+    }
+
+    if (successCount > 0) {
+      const deletedIdsSet = new Set(ids);
+      setMessages(prev => prev.filter(sms => !deletedIdsSet.has(sms._id)));
+    }
+
+    return { successCount, failCount };
+  }, []);
+
   useEffect(() => {
     refetch();
   }, [refetch]);
@@ -159,5 +225,6 @@ export const useSms = () => {
     loadMore,
     error,
     refetch,
+    deleteMessages,
   };
 };

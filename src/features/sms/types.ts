@@ -8,4 +8,4 @@ export interface SmsMessage {
   type?: number; // 1 for inbox (incoming), 2 for sent (outgoing)
 }
 
-export type Category = "All" | "Personal" | "Transactions" | "OTPs" | "Promotions";
+export type Category = "All" | "Personal" | "Transactions" | "OTPs" | "Government" | "Services" | "Promotions";

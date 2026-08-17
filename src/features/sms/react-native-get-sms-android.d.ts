@@ -11,6 +11,11 @@ declare module 'react-native-get-sms-android' {
       fail: (error: string) => void,
       success: (result: string) => void
     ) => void;
+    delete: (
+      id: number,
+      fail: (error: string) => void,
+      success: (result: string) => void
+    ) => void;
   };
   export default SmsAndroid;
 }

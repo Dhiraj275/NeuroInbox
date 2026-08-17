@@ -8,7 +8,8 @@
     "scheme": "neuroinbox",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.dhiraj.neuroinbox"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,9 +22,10 @@
       "permissions": [
         "READ_SMS",
         "SEND_SMS",
+        "WRITE_SMS",
         "READ_CONTACTS"
       ],
-      "package": "com.ekisandarshan.neuroinbox"
+      "package": "com.dhiraj.neuroinbox"
     },
     "web": {
       "output": "static",
