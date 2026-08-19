@@ -21,10 +21,12 @@ export const SmsItem: React.FC<SmsItemProps> = React.memo(({
   onLongPress,
 }) => {
   const theme = useTheme();
-  const { getContactName } = useContacts();
+  const { getContactInfo } = useContacts();
   
   const isUnread = item.read === 0;
-  const contactName = getContactName(item.address);
+  const contactInfo = getContactInfo(item.address);
+  const contactName = contactInfo?.name ?? null;
+  const photoUri = contactInfo?.photoUri ?? null;
   const displayTitle = contactName || item.address;
 
   const getAvatarLabel = () => {
@@ -62,7 +64,7 @@ export const SmsItem: React.FC<SmsItemProps> = React.memo(({
     <List.Item
       title={displayTitle}
       titleStyle={{ fontWeight: isUnread ? 'bold' : 'normal', color: theme.colors.onSurface }}
-      description={item.body}
+      description={item.type === 2 ? `You: ${item.body}` : item.body}
       style={[
         { paddingHorizontal: 10 },
         isSelected && { backgroundColor: theme.colors.primaryContainer + '40' }
@@ -78,13 +80,21 @@ export const SmsItem: React.FC<SmsItemProps> = React.memo(({
           />
         </View>
       ) : (
-        <Avatar.Text
-          {...props}
-          size={40}
-          label={getAvatarLabel()}
-          style={{ backgroundColor: theme.colors.primaryContainer }}
-          color={theme.colors.onPrimaryContainer}
-        />
+        <View style={props.style}>
+          {photoUri ? (
+            <Avatar.Image
+              size={40}
+              source={{ uri: photoUri }}
+            />
+          ) : (
+            <Avatar.Text
+              size={40}
+              label={getAvatarLabel()}
+              style={{ backgroundColor: theme.colors.primaryContainer }}
+              color={theme.colors.onPrimaryContainer}
+            />
+          )}
+        </View>
       )}
       right={() => (
         <View style={styles.rightContainer}>

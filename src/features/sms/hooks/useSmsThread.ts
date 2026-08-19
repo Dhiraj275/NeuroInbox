@@ -3,6 +3,7 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import SmsAndroid from 'react-native-get-sms-android';
 import { SmsMessage } from '../types';
 import { formatPhoneNumber } from '../utils/phoneUtils';
+import { subscribeToSmsReceived } from '../services/defaultSmsService';
 
 export const useSmsThread = (threadId: number) => {
   const [messages, setMessages] = useState<SmsMessage[]>([]);
@@ -69,6 +70,10 @@ export const useSmsThread = (threadId: number) => {
 
   useEffect(() => {
     fetchThread();
+    const unsubscribe = subscribeToSmsReceived(() => {
+      fetchThread();
+    });
+    return () => unsubscribe();
   }, [fetchThread]);
 
   return { messages, loading, error, refetch: fetchThread };

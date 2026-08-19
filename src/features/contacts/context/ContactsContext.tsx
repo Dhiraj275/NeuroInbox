@@ -1,19 +1,23 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   checkContactsPermission,
-  loadPhoneToNameMap,
+  loadPhoneToContactMaps,
   openAppSettings,
   requestContactsPermission,
+  resolveContactInfo,
   resolveContactName,
 } from '../services/contactsService';
-import { ContactsContextValue, PermissionStatus, PhoneToNameMap } from '../types';
+import { ContactInfo, ContactsContextValue, PermissionStatus, PhoneToContactMap, PhoneToNameMap } from '../types';
 
 export const ContactsContext = createContext<ContactsContextValue>({
   contactMap: {},
+  contactInfoMap: {},
   loading: false,
   permissionStatus: 'undetermined',
   hasPermission: false,
   getContactName: () => null,
+  getContactPhoto: () => null,
+  getContactInfo: () => null,
   requestPermission: async () => false,
   openSettings: () => {},
   refetchContacts: async () => {},
@@ -21,14 +25,16 @@ export const ContactsContext = createContext<ContactsContextValue>({
 
 export const ContactsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [contactMap, setContactMap] = useState<PhoneToNameMap>({});
+  const [contactInfoMap, setContactInfoMap] = useState<PhoneToContactMap>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [permissionStatus, setPermissionStatus] = useState<PermissionStatus>('undetermined');
 
   const loadContactsData = useCallback(async () => {
     setLoading(true);
     try {
-      const map = await loadPhoneToNameMap();
-      setContactMap(map);
+      const { nameMap, infoMap } = await loadPhoneToContactMaps();
+      setContactMap(nameMap);
+      setContactInfoMap(infoMap);
     } catch (error) {
       console.error('Failed to load contacts map:', error);
     } finally {
@@ -87,22 +93,43 @@ export const ContactsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [contactMap]
   );
 
+  const getContactInfo = useCallback(
+    (address: string): ContactInfo | null => {
+      return resolveContactInfo(address, contactInfoMap);
+    },
+    [contactInfoMap]
+  );
+
+  const getContactPhoto = useCallback(
+    (address: string): string | null => {
+      const info = resolveContactInfo(address, contactInfoMap);
+      return info?.photoUri ?? null;
+    },
+    [contactInfoMap]
+  );
+
   const value = useMemo(
     () => ({
       contactMap,
+      contactInfoMap,
       loading,
       permissionStatus,
       hasPermission: permissionStatus === 'granted',
       getContactName,
+      getContactPhoto,
+      getContactInfo,
       requestPermission,
       openSettings: openAppSettings,
       refetchContacts: loadContactsData,
     }),
     [
       contactMap,
+      contactInfoMap,
       loading,
       permissionStatus,
       getContactName,
+      getContactPhoto,
+      getContactInfo,
       requestPermission,
       loadContactsData,
     ]

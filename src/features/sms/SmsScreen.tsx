@@ -15,7 +15,7 @@ const renderSeparator = () => <Divider />;
 export const SmsScreen: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category>("Personal");
   const [isSwitching, setIsSwitching] = useState(false);
-  const [groupByThread, setGroupByThread] = useState(false);
+  const [groupByThread, setGroupByThread] = useState(true);
 
   // Selection & Deletion State
   const [isSelectionMode, setIsSelectionMode] = useState(false);

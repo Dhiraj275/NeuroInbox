@@ -3,7 +3,7 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import SmsAndroid from 'react-native-get-sms-android';
 import { Category, SmsMessage } from '../types';
 import { formatPhoneNumber } from '../utils/phoneUtils';
-import { isDefaultSmsApp, requestDefaultSmsApp } from '../services/defaultSmsService';
+import { isDefaultSmsApp, requestDefaultSmsApp, subscribeToSmsReceived } from '../services/defaultSmsService';
 
 export const categorizeSms = (messages: SmsMessage[]): Record<Category, SmsMessage[]> => {
   const result: Record<Category, SmsMessage[]> = {
@@ -118,7 +118,7 @@ export const useSms = () => {
 
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         const filter = {
-          box: 'inbox',
+          box: '',
           indexFrom: startIndex,
           maxCount: PAGE_SIZE,
         };
@@ -214,6 +214,10 @@ export const useSms = () => {
 
   useEffect(() => {
     refetch();
+    const unsubscribe = subscribeToSmsReceived(() => {
+      refetch();
+    });
+    return () => unsubscribe();
   }, [refetch]);
 
   return {

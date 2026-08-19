@@ -3,6 +3,7 @@
   <uses-permission android:name="android.permission.READ_CONTACTS"/>
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" tools:replace="android:maxSdkVersion"/>
   <uses-permission android:name="android.permission.READ_SMS"/>
+  <uses-permission android:name="android.permission.RECEIVE_SMS"/>
   <uses-permission android:name="android.permission.SEND_SMS"/>
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
   <uses-permission android:name="android.permission.VIBRATE"/>
@@ -49,8 +50,9 @@
       android:name=".SmsReceiver"
       android:permission="android.permission.BROADCAST_SMS"
       android:exported="true">
-      <intent-filter>
+      <intent-filter android:priority="999">
         <action android:name="android.provider.Telephony.SMS_DELIVER" />
+        <action android:name="android.provider.Telephony.SMS_RECEIVED" />
       </intent-filter>
     </receiver>
 
