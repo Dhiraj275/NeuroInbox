@@ -1,6 +1,6 @@
 import { useFocusEffect } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, BackHandler, FlatList, StyleSheet, View } from 'react-native';
 import { Appbar, Button, Dialog, Divider, FAB, Portal, Snackbar, Text, useTheme } from 'react-native-paper';
 import { ContactsPermissionBanner } from '../contacts/components/ContactsPermissionBanner';
 import { CategoryChips } from './components/CategoryChips';
@@ -33,6 +33,36 @@ export const SmsScreen: React.FC = () => {
       refetch();
     }, [refetch])
   );
+
+  const exitSelectionMode = useCallback(() => {
+    setIsSelectionMode(false);
+    setSelectedIds(new Set());
+  }, []);
+
+  // Intercept hardware back button in selection mode
+  useEffect(() => {
+    const onBackPress = () => {
+      if (showDeleteDialog && !isDeleting) {
+        setShowDeleteDialog(false);
+        return true;
+      }
+      if (isSelectionMode) {
+        exitSelectionMode();
+        return true;
+      }
+      return false;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, [isSelectionMode, showDeleteDialog, isDeleting, exitSelectionMode]);
+
+  // Automatically exit selection mode when selected count reaches 0
+  useEffect(() => {
+    if (isSelectionMode && selectedIds.size === 0) {
+      setIsSelectionMode(false);
+    }
+  }, [isSelectionMode, selectedIds.size]);
 
   const filteredSMS = categorizedMessages[selectedCategory] || [];
 
@@ -97,11 +127,6 @@ export const SmsScreen: React.FC = () => {
     setIsSelectionMode(true);
     handleSelectToggle(item);
   }, [handleSelectToggle]);
-
-  const exitSelectionMode = () => {
-    setIsSelectionMode(false);
-    setSelectedIds(new Set());
-  };
 
   const switchCategory = (category: Category) => {
     setIsSwitching(true);

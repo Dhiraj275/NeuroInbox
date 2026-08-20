@@ -71,17 +71,17 @@ export const SmsItem: React.FC<SmsItemProps> = React.memo(({
       ]}
       descriptionNumberOfLines={1}
       descriptionStyle={{ color: isUnread ? theme.colors.onSurface : theme.colors.outline }}
-      left={props => isSelectionMode ? (
-        <View style={styles.checkboxContainer}>
-          <Checkbox.Android
-            status={isSelected ? 'checked' : 'unchecked'}
-            onPress={() => onSelectToggle?.(item)}
-            color={theme.colors.primary}
-          />
-        </View>
-      ) : (
-        <View style={props.style}>
-          {photoUri ? (
+      left={props => (
+        <View style={[props.style, styles.leftAvatarContainer]}>
+          {isSelectionMode ? (
+            <View style={styles.checkboxWrapper}>
+              <Checkbox.Android
+                status={isSelected ? 'checked' : 'unchecked'}
+                onPress={() => onSelectToggle?.(item)}
+                color={theme.colors.primary}
+              />
+            </View>
+          ) : photoUri ? (
             <Avatar.Image
               size={40}
               source={{ uri: photoUri }}
@@ -109,11 +109,17 @@ export const SmsItem: React.FC<SmsItemProps> = React.memo(({
 });
 
 const styles = StyleSheet.create({
-  checkboxContainer: {
+  leftAvatarContainer: {
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 4,
-    marginRight: 8,
+  },
+  checkboxWrapper: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   rightContainer: {
     alignItems: 'flex-end',
