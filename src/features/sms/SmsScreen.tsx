@@ -1,3 +1,4 @@
+import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import { Appbar, Button, Dialog, Divider, FAB, Portal, Snackbar, Text, useTheme } from 'react-native-paper';
@@ -26,6 +27,12 @@ export const SmsScreen: React.FC = () => {
 
   const theme = useTheme();
   const { categorizedMessages, loading, loadingMore, loadMore, error, refetch, deleteMessages } = useSms();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const filteredSMS = categorizedMessages[selectedCategory] || [];
 

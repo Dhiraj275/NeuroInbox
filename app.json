@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "neuroinbox",
+    "name": "NeuroInbox",
     "slug": "neuroinbox",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/android-icon-background.png",
     "scheme": "neuroinbox",
     "userInterfaceStyle": "automatic",
     "ios": {

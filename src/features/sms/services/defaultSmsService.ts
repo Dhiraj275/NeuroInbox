@@ -74,3 +74,29 @@ export const subscribeToSmsReceived = (
     subscription.remove();
   };
 };
+
+/**
+ * Marks all unread messages in a conversation thread as read in Android system database.
+ */
+export const markThreadAsRead = async (threadId: number): Promise<number> => {
+  if (Platform.OS !== 'android' || !DefaultSmsModule) return 0;
+  try {
+    return await DefaultSmsModule.markThreadAsRead(threadId);
+  } catch (error) {
+    console.error('Error marking thread as read:', error);
+    return 0;
+  }
+};
+
+/**
+ * Marks a specific SMS message as read.
+ */
+export const markMessageAsRead = async (messageId: string): Promise<number> => {
+  if (Platform.OS !== 'android' || !DefaultSmsModule) return 0;
+  try {
+    return await DefaultSmsModule.markMessageAsRead(messageId);
+  } catch (error) {
+    console.error('Error marking message as read:', error);
+    return 0;
+  }
+};

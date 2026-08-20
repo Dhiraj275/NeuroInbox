@@ -116,6 +116,14 @@ export const useSms = () => {
         },
       );
 
+      if (Platform.OS === 'android' && Platform.Version >= 33) {
+        try {
+          await PermissionsAndroid.request('android.permission.POST_NOTIFICATIONS' as any);
+        } catch (e) {
+          // Non-critical if user dismisses notification prompt
+        }
+      }
+
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         const filter = {
           box: '',

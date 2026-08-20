@@ -3,7 +3,7 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import SmsAndroid from 'react-native-get-sms-android';
 import { SmsMessage } from '../types';
 import { formatPhoneNumber } from '../utils/phoneUtils';
-import { subscribeToSmsReceived } from '../services/defaultSmsService';
+import { markThreadAsRead, subscribeToSmsReceived } from '../services/defaultSmsService';
 
 export const useSmsThread = (threadId: number) => {
   const [messages, setMessages] = useState<SmsMessage[]>([]);
@@ -50,12 +50,38 @@ export const useSmsThread = (threadId: number) => {
             const rawArr = JSON.parse(smsList) as SmsMessage[];
             const arr = rawArr.map(sms => ({
               ...sms,
+              read: 1, // Mark locally as read since thread is opened
               address: formatPhoneNumber(sms.address),
             }));
             // Sort by date descending so we can render inverted (newest at bottom)
             const sorted = arr.sort((a, b) => Number(b.date) - Number(a.date));
-            setMessages(sorted);
+
+            // Deduplicate by _id and matching content (address + body + timestamp within 3s)
+            const seenIds = new Set<string>();
+            const uniqueMessages: SmsMessage[] = [];
+
+            for (const sms of sorted) {
+              if (seenIds.has(sms._id)) continue;
+              seenIds.add(sms._id);
+
+              const isDuplicate = uniqueMessages.some(existing =>
+                existing.address === sms.address &&
+                existing.body === sms.body &&
+                Math.abs(Number(existing.date) - Number(sms.date)) < 3000
+              );
+
+              if (!isDuplicate) {
+                uniqueMessages.push(sms);
+              }
+            }
+
+            setMessages(uniqueMessages);
             setLoading(false);
+
+            // Persist read status (READ=1, SEEN=1) in Android system SMS Provider
+            markThreadAsRead(threadId).catch(err => {
+              console.error('Failed to mark thread as read in system database:', err);
+            });
           },
         );
       } else {

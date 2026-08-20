@@ -145,24 +145,51 @@ class DefaultSmsModule(reactContext: ReactApplicationContext) :
                 smsManager.sendTextMessage(phoneNumber, null, message, null, null)
             }
 
-            // Save sent message to system SMS content provider
-            try {
-                val values = ContentValues().apply {
-                    put(Telephony.Sms.ADDRESS, phoneNumber)
-                    put(Telephony.Sms.BODY, message)
-                    put(Telephony.Sms.DATE, System.currentTimeMillis())
-                    put(Telephony.Sms.READ, 1)
-                    put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_SENT)
-                }
-                reactApplicationContext.contentResolver.insert(Telephony.Sms.Sent.CONTENT_URI, values)
-            } catch (e: Exception) {
-                // Non-critical if inserting fails (e.g. permission restriction)
-                e.printStackTrace()
-            }
-
             promise.resolve(true)
         } catch (e: Exception) {
             promise.reject("E_SEND_SMS_FAILED", e.message, e)
+        }
+    }
+
+    @ReactMethod
+    fun markThreadAsRead(threadId: Double, promise: Promise) {
+        try {
+            val values = ContentValues().apply {
+                put(Telephony.Sms.READ, 1)
+                put(Telephony.Sms.SEEN, 1)
+            }
+            val where = "${Telephony.Sms.THREAD_ID} = ? AND ${Telephony.Sms.READ} = 0"
+            val selectionArgs = arrayOf(threadId.toLong().toString())
+            val count = reactApplicationContext.contentResolver.update(
+                Telephony.Sms.CONTENT_URI,
+                values,
+                where,
+                selectionArgs
+            )
+            promise.resolve(count)
+        } catch (e: Exception) {
+            promise.reject("E_MARK_THREAD_READ_FAILED", e.message, e)
+        }
+    }
+
+    @ReactMethod
+    fun markMessageAsRead(messageId: String, promise: Promise) {
+        try {
+            val values = ContentValues().apply {
+                put(Telephony.Sms.READ, 1)
+                put(Telephony.Sms.SEEN, 1)
+            }
+            val where = "${Telephony.Sms._ID} = ?"
+            val selectionArgs = arrayOf(messageId)
+            val count = reactApplicationContext.contentResolver.update(
+                Telephony.Sms.CONTENT_URI,
+                values,
+                where,
+                selectionArgs
+            )
+            promise.resolve(count)
+        } catch (e: Exception) {
+            promise.reject("E_MARK_MSG_READ_FAILED", e.message, e)
         }
     }
 

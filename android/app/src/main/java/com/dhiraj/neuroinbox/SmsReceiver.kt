@@ -34,16 +34,30 @@ class SmsReceiver : BroadcastReceiver() {
             }
             val fullBody = bodyBuilder.toString()
 
-            // Save incoming message to System Content Provider (Inbox)
+            // Save incoming message to System Content Provider (Inbox) if not already saved
             try {
-                val values = ContentValues().apply {
-                    put(Telephony.Sms.ADDRESS, senderAddress)
-                    put(Telephony.Sms.BODY, fullBody)
-                    put(Telephony.Sms.DATE, if (timestamp > 0) timestamp else System.currentTimeMillis())
-                    put(Telephony.Sms.READ, 0)
-                    put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_INBOX)
+                val msgTime = if (timestamp > 0) timestamp else System.currentTimeMillis()
+                val projection = arrayOf(Telephony.Sms._ID)
+                val selection = "${Telephony.Sms.ADDRESS} = ? AND ${Telephony.Sms.BODY} = ? AND ${Telephony.Sms.DATE} >= ?"
+                val selectionArgs = arrayOf(senderAddress, fullBody, (msgTime - 5000).toString())
+                val cursor = context.contentResolver.query(
+                    Telephony.Sms.CONTENT_URI,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null
+                )
+                val exists = cursor?.use { it.count > 0 } ?: false
+                if (!exists) {
+                    val values = ContentValues().apply {
+                        put(Telephony.Sms.ADDRESS, senderAddress)
+                        put(Telephony.Sms.BODY, fullBody)
+                        put(Telephony.Sms.DATE, msgTime)
+                        put(Telephony.Sms.READ, 0)
+                        put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_INBOX)
+                    }
+                    context.contentResolver.insert(Telephony.Sms.Inbox.CONTENT_URI, values)
                 }
-                context.contentResolver.insert(Telephony.Sms.Inbox.CONTENT_URI, values)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -51,6 +65,13 @@ class SmsReceiver : BroadcastReceiver() {
             // Send real-time notification event to React Native JS
             try {
                 DefaultSmsModule.sendSmsReceivedEvent(context, senderAddress, fullBody)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            // Trigger heads-up system notification
+            try {
+                NotificationHelper.showSmsNotification(context, senderAddress, fullBody)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
