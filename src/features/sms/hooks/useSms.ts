@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PermissionsAndroid, Platform } from 'react-native';
 import SmsAndroid from 'react-native-get-sms-android';
+import { isDefaultSmsApp, requestDefaultSmsApp, subscribeToSmsReceived } from '../services/defaultSmsService';
 import { Category, SmsMessage } from '../types';
 import { formatPhoneNumber } from '../utils/phoneUtils';
-import { isDefaultSmsApp, requestDefaultSmsApp, subscribeToSmsReceived } from '../services/defaultSmsService';
 
 export const categorizeSms = (messages: SmsMessage[]): Record<Category, SmsMessage[]> => {
   const result: Record<Category, SmsMessage[]> = {
@@ -30,10 +30,7 @@ export const categorizeSms = (messages: SmsMessage[]): Record<Category, SmsMessa
     // -G suffix / Government headers (e.g., AD-GOVMSG, AX-UIDAIG, XX-XXXX-G)
     const isGovernment =
       addressUpper.endsWith("-G") ||
-      (addressUpper.length >= 6 && addressUpper.endsWith("G") && !isPhone) ||
-      /\b(gov|govt|uidai|epfo|aadhaar|passport|incometax|parivahan|vahan|digilocker|mygov|pib|election)\b/i.test(addressLower) ||
-      /\b(uidai|epfo|aadhaar|digilocker|mygov|income tax department|parivahan|government of india|govt of)\b/i.test(bodyLower);
-
+      (addressUpper.length >= 6 && addressUpper.endsWith("G") && !isPhone)
     // -S suffix / Service headers (e.g., VM-INDGAS, AX-JIO-S, XX-XXXX-S)
     const isService =
       addressUpper.endsWith("-S") ||

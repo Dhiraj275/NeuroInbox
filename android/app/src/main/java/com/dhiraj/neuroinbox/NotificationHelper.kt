@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.ContactsContract
+import android.provider.Telephony
 import androidx.core.app.NotificationCompat
 
 object NotificationHelper {
@@ -61,14 +62,31 @@ object NotificationHelper {
         return contactName
     }
 
+    private fun resolveThreadId(context: Context, address: String): Long {
+        if (address.isBlank()) return 0L
+        return try {
+            Telephony.Threads.getOrCreateThreadId(context, address)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            0L
+        }
+    }
+
     fun showSmsNotification(context: Context, senderAddress: String, body: String) {
         try {
             createNotificationChannel(context)
 
             val titleName = resolveContactName(context, senderAddress)
+            val threadId = resolveThreadId(context, senderAddress)
 
-            val intent = Intent(context, MainActivity::class.java).apply {
+            val deepLinkUri = Uri.parse(
+                "neuroinbox://thread/$threadId?address=${Uri.encode(senderAddress)}&contactName=${Uri.encode(titleName)}"
+            )
+
+            val intent = Intent(Intent.ACTION_VIEW, deepLinkUri).apply {
+                setClass(context, MainActivity::class.java)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra("threadId", threadId)
                 putExtra("address", senderAddress)
                 putExtra("contactName", titleName)
             }

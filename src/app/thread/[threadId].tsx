@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, PermissionsAndroid, StyleSheet, TextInput, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, BackHandler, FlatList, KeyboardAvoidingView, PermissionsAndroid, StyleSheet, TextInput, View } from 'react-native';
 import { sendSms } from '../../features/sms/services/defaultSmsService';
 import { Appbar, Avatar, IconButton, Text, useTheme } from 'react-native-paper';
 import { useContacts } from '../../features/contacts/hooks/useContacts';
@@ -15,6 +15,24 @@ export default function ThreadScreen() {
   const [sending, setSending] = useState(false);
 
   const { messages, loading, error, refetch } = useSmsThread(Number(threadId));
+
+  const handleGoBack = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  }, []);
+
+  useEffect(() => {
+    const onBackPress = () => {
+      handleGoBack();
+      return true;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, [handleGoBack]);
 
   const contactInfo = address ? getContactInfo(address as string) : null;
   const resolvedContactName = (paramContactName as string) || contactInfo?.name || null;
@@ -125,7 +143,7 @@ export default function ThreadScreen() {
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <Appbar.Header elevated style={{ backgroundColor: theme.colors.elevation.level2 }}>
-        <Appbar.BackAction onPress={() => router.back()} />
+        <Appbar.BackAction onPress={handleGoBack} />
         {photoUri && (
           <Avatar.Image
             size={36}
