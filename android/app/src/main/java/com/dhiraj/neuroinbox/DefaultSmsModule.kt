@@ -207,6 +207,16 @@ class DefaultSmsModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    @ReactMethod
+    fun getThreadIdForAddress(address: String, promise: Promise) {
+        try {
+            val threadId = Telephony.Threads.getOrCreateThreadId(reactApplicationContext, address)
+            promise.resolve(threadId.toDouble())
+        } catch (e: Exception) {
+            promise.reject("E_GET_THREAD_ID_FAILED", e.message, e)
+        }
+    }
+
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_CODE_DEFAULT_SMS) {
             val isDefault = checkIsDefaultSmsApp()

@@ -100,3 +100,16 @@ export const markMessageAsRead = async (messageId: string): Promise<number> => {
     return 0;
   }
 };
+
+/**
+ * Resolves or retrieves the system thread ID for a recipient phone number/address.
+ */
+export const getThreadIdForAddress = async (address: string): Promise<number> => {
+  if (Platform.OS !== 'android' || !DefaultSmsModule) return 0;
+  try {
+    return await DefaultSmsModule.getThreadIdForAddress(address);
+  } catch (error) {
+    console.error('Error resolving thread ID for address:', error);
+    return 0;
+  }
+};

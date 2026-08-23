@@ -1,4 +1,4 @@
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, BackHandler, FlatList, StyleSheet, View } from 'react-native';
 import { Appbar, Button, Dialog, Divider, FAB, Portal, Snackbar, Text, useTheme } from 'react-native-paper';
@@ -263,7 +263,7 @@ export const SmsScreen: React.FC = () => {
           icon="message-plus"
           style={[styles.fab, { backgroundColor: theme.colors.primaryContainer }]}
           color={theme.colors.onPrimaryContainer}
-          onPress={() => console.log('New Message')}
+          onPress={() => router.push('/compose')}
         />
       )}
 
