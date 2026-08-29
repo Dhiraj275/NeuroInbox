@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, BackHandler, FlatList, StyleSheet, View } from 'react-native';
-import { Appbar, Button, Dialog, Divider, FAB, Portal, Snackbar, Text, useTheme } from 'react-native-paper';
+import { Appbar, Button, Dialog, Divider, FAB, Menu, Portal, Snackbar, Text, useTheme } from 'react-native-paper';
 import { ContactsPermissionBanner } from '../contacts/components/ContactsPermissionBanner';
 import { CategoryChips } from './components/CategoryChips';
 import { SmsItem } from './components/SmsItem';
@@ -24,6 +24,7 @@ export const SmsScreen: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const theme = useTheme();
   const { categorizedMessages, loading, loadingMore, loadMore, error, refetch, deleteMessages } = useSms();
@@ -196,17 +197,34 @@ export const SmsScreen: React.FC = () => {
         <Appbar.Header elevated>
           <Appbar.Action icon="menu" onPress={() => { }} />
           <Appbar.Content title="NeuroInbox" />
-          <Appbar.Action
-            icon={groupByThread ? "forum" : "forum-outline"}
-            onPress={() => setGroupByThread(!groupByThread)}
-            accessibilityLabel="Toggle thread view"
-          />
-          <Appbar.Action
-            icon="checkbox-multiple-marked-outline"
-            onPress={() => setIsSelectionMode(true)}
-            accessibilityLabel="Enter selection mode"
-          />
-          <Appbar.Action icon="dots-vertical" onPress={() => { }} />
+          <Menu
+            visible={menuVisible}
+            onDismiss={() => setMenuVisible(false)}
+            anchor={
+              <Appbar.Action
+                icon="dots-vertical"
+                onPress={() => setMenuVisible(true)}
+                accessibilityLabel="More options"
+              />
+            }
+          >
+            <Menu.Item
+              onPress={() => {
+                setGroupByThread(!groupByThread);
+                setMenuVisible(false);
+              }}
+              title={groupByThread ? "Show Messages" : "Show Threads"}
+              leadingIcon={groupByThread ? "message-text-outline" : "forum-outline"}
+            />
+            <Menu.Item
+              onPress={() => {
+                refetch();
+                setMenuVisible(false);
+              }}
+              title="Refresh Inbox"
+              leadingIcon="refresh"
+            />
+          </Menu>
         </Appbar.Header>
       )}
 

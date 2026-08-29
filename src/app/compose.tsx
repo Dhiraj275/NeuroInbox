@@ -32,17 +32,26 @@ export default function ComposeScreen() {
   const [sending, setSending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Derive unique contacts list from contactInfoMap
+  // Derive unique contacts list from contactInfoMap (deduplicating +91 / local numbers)
   const allContacts = useMemo(() => {
     const map = new Map<string, ContactSuggestion>();
     Object.entries(contactInfoMap).forEach(([address, info]) => {
-      const key = `${info.name}-${address}`;
+      const normalizedAddress = formatPhoneNumber(address) || address;
+      const key = info.name
+        ? `${info.name.toLowerCase()}-${normalizedAddress}`
+        : normalizedAddress;
+
       if (!map.has(key)) {
         map.set(key, {
-          address,
+          address: normalizedAddress,
           name: info.name,
           photoUri: info.photoUri,
         });
+      } else {
+        const existing = map.get(key)!;
+        if (!existing.photoUri && info.photoUri) {
+          existing.photoUri = info.photoUri;
+        }
       }
     });
     return Array.from(map.values());

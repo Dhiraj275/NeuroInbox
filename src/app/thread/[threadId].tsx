@@ -1,15 +1,20 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, BackHandler, FlatList, KeyboardAvoidingView, PermissionsAndroid, StyleSheet, TextInput, View } from 'react-native';
-import { sendSms } from '../../features/sms/services/defaultSmsService';
+import { ActivityIndicator, BackHandler, FlatList, KeyboardAvoidingView, PermissionsAndroid, Platform, StatusBar, StyleSheet, TextInput, View } from 'react-native';
 import { Appbar, Avatar, IconButton, Text, useTheme } from 'react-native-paper';
 import { useContacts } from '../../features/contacts/hooks/useContacts';
 import { useSmsThread } from '../../features/sms/hooks/useSmsThread';
+import { sendSms } from '../../features/sms/services/defaultSmsService';
 import { SmsMessage } from '../../features/sms/types';
+
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ThreadScreen() {
   const { threadId, address, contactName: paramContactName } = useLocalSearchParams();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const topInset = insets.top || StatusBar.currentHeight || 0;
+
   const { getContactInfo } = useContacts();
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
@@ -138,83 +143,85 @@ export default function ThreadScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={"height"}
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-    >
-      <Appbar.Header elevated style={{ backgroundColor: theme.colors.elevation.level2 }}>
-        <Appbar.BackAction onPress={handleGoBack} />
-        {photoUri && (
-          <Avatar.Image
-            size={36}
-            source={{ uri: photoUri }}
-            style={{ marginRight: 8 }}
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['bottom', 'left', 'right']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        <Appbar.Header elevated statusBarHeight={topInset} style={{ backgroundColor: theme.colors.elevation.level2 }}>
+          <Appbar.BackAction onPress={handleGoBack} />
+          {photoUri && (
+            <Avatar.Image
+              size={36}
+              source={{ uri: photoUri }}
+              style={{ marginRight: 8 }}
+            />
+          )}
+          <Appbar.Content
+            title={headerTitle}
+            titleStyle={styles.headerTitle}
+          />
+        </Appbar.Header>
+
+        {loading ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+          </View>
+        ) : error ? (
+          <View style={styles.centerContainer}>
+            <Text style={{ color: theme.colors.error, textAlign: 'center', padding: 20 }}>
+              {error}
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={messages}
+            keyExtractor={item => item._id}
+            renderItem={renderItem}
+            inverted
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <View style={styles.centerContainer}>
+                <Text>No messages in this thread.</Text>
+              </View>
+            }
           />
         )}
-        <Appbar.Content
-          title={headerTitle}
-          titleStyle={styles.headerTitle}
-        />
-      </Appbar.Header>
 
-      {loading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </View>
-      ) : error ? (
-        <View style={styles.centerContainer}>
-          <Text style={{ color: theme.colors.error, textAlign: 'center', padding: 20 }}>
-            {error}
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={messages}
-          keyExtractor={item => item._id}
-          renderItem={renderItem}
-          inverted
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.centerContainer}>
-              <Text>No messages in this thread.</Text>
+        {isReplyable ? (
+          <View style={[styles.inputContainer, { backgroundColor: theme.colors.background }]}>
+            <View style={[styles.inputPill, { backgroundColor: theme.colors.elevation.level1 }]}>
+              <TextInput
+                placeholder="Text message"
+                placeholderTextColor={theme.colors.outline}
+                value={replyText}
+                onChangeText={setReplyText}
+                style={[styles.input, { color: theme.colors.onSurface }]}
+                multiline
+                editable={!sending}
+              />
             </View>
-          }
-        />
-      )}
-
-      {isReplyable ? (
-        <View style={[styles.inputContainer, { backgroundColor: theme.colors.background }]}>
-          <View style={[styles.inputPill, { backgroundColor: theme.colors.elevation.level1 }]}>
-            <TextInput
-              placeholder="Text message"
-              placeholderTextColor={theme.colors.outline}
-              value={replyText}
-              onChangeText={setReplyText}
-              style={[styles.input, { color: theme.colors.onSurface }]}
-              multiline
-              editable={!sending}
+            <IconButton
+              icon="send"
+              mode="contained"
+              containerColor={theme.colors.primary}
+              iconColor={theme.colors.onPrimary}
+              disabled={!replyText.trim() || sending}
+              onPress={handleSend}
+              size={22}
+              style={styles.sendButton}
             />
           </View>
-          <IconButton
-            icon="send"
-            mode="contained"
-            containerColor={theme.colors.primary}
-            iconColor={theme.colors.onPrimary}
-            disabled={!replyText.trim() || sending}
-            onPress={handleSend}
-            size={22}
-            style={styles.sendButton}
-          />
-        </View>
-      ) : (
-        <View style={[styles.disabledBar, { backgroundColor: theme.colors.surfaceVariant }]}>
-          <IconButton icon="lock-outline" size={16} iconColor={theme.colors.outline} style={styles.lockIcon} />
-          <Text style={[styles.disabledText, { color: theme.colors.outline }]}>
-            Replies are not supported for this sender ID
-          </Text>
-        </View>
-      )}
-    </KeyboardAvoidingView>
+        ) : (
+          <View style={[styles.disabledBar, { backgroundColor: theme.colors.surfaceVariant }]}>
+            <IconButton icon="lock-outline" size={16} iconColor={theme.colors.outline} style={styles.lockIcon} />
+            <Text style={[styles.disabledText, { color: theme.colors.outline }]}>
+              Replies are not supported for this sender ID
+            </Text>
+          </View>
+        )}
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
