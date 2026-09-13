@@ -1,10 +1,26 @@
-# NeuroInbox
+# NeuroInbox 🚀
+
+[![Latest Release](https://img.shields.io/github/v/release/Dhiraj275/NeuroInbox?style=for-the-badge&logo=github&color=208AEF)](https://github.com/Dhiraj275/NeuroInbox/releases/latest)
+[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0.0-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Dhiraj275/NeuroInbox/releases/latest)
+[![Platform](https://img.shields.io/badge/Platform-Android%207.0%2B-007ACC?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Dhiraj275/NeuroInbox)
+[![Expo SDK](https://img.shields.io/badge/Expo_SDK-57-000000?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 A native Android SMS client and organizer built with Expo SDK 57 and React Native. NeuroInbox categorizes SMS headers following TRAI standards, supports full Default SMS application capabilities, and handles external dialer intent routing.
 
 ---
 
-## Key Features
+## 📥 Download Latest Release
+
+Get the compiled, ready-to-install Android APK directly from the release page:
+
+[![Download NeuroInbox v1.0.0 APK](https://img.shields.io/badge/⬇️_Download_NeuroInbox_v1.0.0_APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Dhiraj275/NeuroInbox/releases/latest)
+
+> 🔗 **All Releases & Assets**: [GitHub Releases Page](https://github.com/Dhiraj275/NeuroInbox/releases)
+
+---
+
+## ✨ Key Features
 
 - **TRAI Header Categorization**: Categorizes SMS headers into Personal, Transactions, OTPs, Government (`-G`), Services (`-S`), and Promotions using Telecom Regulatory Authority of India (TRAI) routing specifications.
 - **Default SMS App Capabilities**: Handles native SMS sending via system `SmsManager`, thread resolution (`Telephony.Threads.getOrCreateThreadId`), message deletion, and system read/seen flag updates.
@@ -16,7 +32,7 @@ A native Android SMS client and organizer built with Expo SDK 57 and React Nativ
 
 ---
 
-## Technical Stack
+## 🛠 Technical Stack
 
 - **Core**: Expo SDK 57 (New Architecture & React 19), React Native 0.86
 - **Routing**: Expo Router (File-based navigation)
@@ -25,14 +41,14 @@ A native Android SMS client and organizer built with Expo SDK 57 and React Nativ
 
 ---
 
-## System Requirements
+## ⚠️ System Requirements
 
 - **Android OS**: Android 7.0 (API Level 24) or higher
 - **Android Permissions**: `READ_SMS`, `SEND_SMS`, `RECEIVE_SMS`, `WRITE_SMS`, `READ_CONTACTS`, `POST_NOTIFICATIONS`
 
 ---
 
-## Development & Build Guide
+## 🏁 Development & Build Guide
 
 ### 1. Installation
 
@@ -60,7 +76,7 @@ cd android
 
 ---
 
-## Project Architecture
+## 📁 Project Architecture
 
 ```
 NeuroInbox/
@@ -74,6 +90,6 @@ NeuroInbox/
 
 ---
 
-## License
+## 📄 License
 
 MIT License. See [LICENSE](LICENSE) for details.
