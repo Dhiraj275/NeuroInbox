@@ -74,6 +74,16 @@ cd android
 # Output APK: android/app/build/outputs/apk/release/app-release.apk
 ```
 
+### 🐛 Troubleshooting Build Issues
+
+If you encounter build errors related to `react-native-get-sms-android` during compilation, it is because the legacy library references the deprecated `jcenter()` repository in its module configuration.
+
+**Fix**:
+1. Open `node_modules/react-native-get-sms-android/android/build.gradle`.
+2. Locate `jcenter()` under the `repositories` block.
+3. Replace `jcenter()` with `mavenCentral()`.
+4. Re-run your build command (`npx expo run:android` or `./gradlew assembleRelease`).
+
 ---
 
 ## 📁 Project Architecture
