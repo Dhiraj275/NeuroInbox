@@ -195,7 +195,6 @@ export const SmsScreen: React.FC = () => {
         </Appbar.Header>
       ) : (
         <Appbar.Header elevated>
-          <Appbar.Action icon="menu" onPress={() => { }} />
           <Appbar.Content title="NeuroInbox" />
           <Menu
             visible={menuVisible}
