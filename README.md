@@ -1,77 +1,84 @@
 # NeuroInbox 🚀
 
-> **Note:** 🚧 This application is currently **in development**. Features, UI, and functionality are subject to change.
+> **Version 1.0.0** — A smart, privacy-focused, Material Design 3 SMS messenger and organizer for Android.
 
-NeuroInbox is a React Native mobile application built with Expo that organizes and categorizes your SMS messages into an intuitive, modern inbox. The app features a Material Design UI using `react-native-paper` and dynamically switches themes based on your device's system settings.
+NeuroInbox is an Android SMS application built with Expo (SDK 57) and React Native. It intelligently categorizes SMS messages, supports full Default SMS App capabilities, seamlessly deep-links with external dialers (Google Phone, Contacts), and presents messages in a Material Design 3 user interface.
 
-## Features ✨
-- **Native SMS Fetching:** Automatically reads incoming and existing SMS messages directly from your Android device using `react-native-get-sms-android`.
-- **Smart Categorization:** Filters your SMS into useful categories like Personal, Transactions, OTPs, and Offers.
-- **Material Design:** A beautiful, responsive user interface built using `react-native-paper`.
-- **Dynamic Theming:** Seamlessly adapts to your device's light or dark mode preferences.
-- **Feature-Based Architecture:** Scalable and maintainable project structure.
+---
 
-## Tech Stack 🛠
-- [Expo](https://expo.dev) / React Native
-- [React Native Paper](https://reactnativepaper.com/) (Material Design)
-- [React Native Get SMS Android](https://github.com/briankabiro/react-native-get-sms-android) (Native Android SMS capabilities)
+## ✨ Features
 
-## Requirements ⚠️
-Because this application relies on native Android permissions (`READ_SMS`) and a native Android package (`react-native-get-sms-android`), **it cannot be run using the standard Expo Go app.**
+- 🏷️ **TRAI SMS Header Categorization**: Automatically filters messages based on Telecom Regulatory Authority of India (TRAI) header rules (`-G` for Government, `-S` for Service messages, along with OTPs, Transactions, Personal, and Promotions).
+- 📲 **Default SMS Application Support**: Supports native SMS sending via system `SmsManager`, message deletion, read flag synchronization (`Telephony.Sms.READ`), and Default SMS app prompts.
+- 📞 **External Dialer & Contacts Integration**: Intercepts `smsto:` and `sms:` intents from Google Phone, Google Contacts, and system dialers to open target conversation threads directly.
+- ✉️ **Compose New SMS & Contact Autocomplete**: Fast contact search with live device contact photo caching and phone number deduplication (`formatPhoneNumber`).
+- 🔔 **Notifications & Deep-Linking**: Instant incoming SMS notifications with deep-link navigation into conversation threads.
+- 🎨 **Material Design 3 & Dynamic Theming**: Built with `react-native-paper`, supporting automatic Light/Dark mode themes and safe area inset protections.
+- 🧵 **Flexible Viewing Modes**: Toggle between grouped conversation threads or individual message lists via the Quick Actions 3-dots menu.
 
-You must build the project as a custom development client (or use Expo Prebuild). **This app only works on Android devices or emulators.**
+---
 
-## Getting Started 🏁
+## 🛠 Tech Stack
 
-### 1. Install dependencies
+- **Framework**: [Expo SDK 57](https://expo.dev) / React Native (New Architecture & React 19)
+- **UI System**: [React Native Paper](https://reactnativepaper.com/) (Material Design 3)
+- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based routing)
+- **Native Android Modules**: Custom Kotlin native modules (`DefaultSmsModule`, `SmsReceiver`, `NotificationHelper`)
+
+---
+
+## ⚠️ Requirements
+
+- **Operating System**: Android 7.0 (API Level 24) or higher.
+- **Permissions**: `READ_SMS`, `SEND_SMS`, `RECEIVE_SMS`, `WRITE_SMS`, `READ_CONTACTS`, `POST_NOTIFICATIONS`.
+- **Note**: Because this application relies on native Android Telephony ContentProviders and custom native Kotlin modules, it requires a custom development client build (`npx expo run:android`) or standalone APK installation.
+
+---
+
+## 🏁 Getting Started
+
+### 1. Clone & Install Dependencies
+
 ```bash
+git clone https://github.com/Dhiraj275/NeuroInbox.git
+cd NeuroInbox
 npm install
 ```
 
-### 2. Run the App on Android (Development Client)
-Connect your physical Android device via USB debugging or start an Android Emulator, then run:
+### 2. Run on Android Device / Emulator
+
+Connect your physical Android device via USB debugging or launch an Android Emulator:
 
 ```bash
 npx expo run:android
 ```
 
-This command will:
-1. Generate the native `android` folder (if missing).
-2. Compile the custom native code and inject the required permissions.
-3. Install the development client on your device/emulator.
-4. Start the Metro bundler.
+### 3. Build Release APK
 
-### 3. Grant Permissions
-Upon launching the application for the first time, you will be prompted to grant SMS read permissions. Allow this permission to view your messages in the NeuroInbox dashboard.
+To build a standalone debug/release APK for distribution:
 
-### Troubleshooting Build Issues 🐛
-If you encounter build errors related to `react-native-get-sms-android` preventing the Android app from compiling, it may be because the package relies on the deprecated `jcenter()` repository.
-
-To fix this:
-1. Open the file `node_modules/react-native-get-sms-android/android/build.gradle`.
-2. Locate `jcenter()` (usually under the `repositories` block).
-3. Replace `jcenter()` with `mavenCentral()`.
-4. Run the build command again.
-
-## Project Structure 📁
-This project follows a feature-based folder structure:
-
-```
-src/
- ├── app/               # Expo Router entry points (_layout.tsx, index.tsx)
- └── features/          
-      └── sms/          # Encapsulated SMS feature module
-           ├── components/
-           │    ├── CategoryChips.tsx
-           │    └── SmsItem.tsx
-           ├── hooks/
-           │    └── useSms.ts
-           ├── SmsScreen.tsx
-           └── types.ts
+```bash
+cd android
+./gradlew assembleDebug
+# APK generated at android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-## Contributing 🤝
-Contributions are welcome! Please feel free to submit a Pull Request or open an Issue.
+---
 
-## License 📄
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📁 Project Structure
+
+```
+NeuroInbox/
+ ├── android/           # Native Android project & custom Kotlin modules
+ └── src/
+      ├── app/          # Expo Router file routes (_layout.tsx, index.tsx, compose.tsx, thread/[threadId].tsx)
+      └── features/     # Feature-based modular structure
+           ├── contacts/# Contact photo caching & permissions
+           └── sms/     # SMS hooks, components, native service bridge & phone utilities
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
